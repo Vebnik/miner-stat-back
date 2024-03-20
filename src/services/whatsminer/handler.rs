@@ -25,7 +25,10 @@ pub async fn all_stat(state: web::Data<AppState>) -> impl Responder {
 pub async fn create(state: web::Data<AppState>, data: web::Json<CreateWorker>) -> impl Responder {
     match Worker::create(Arc::clone(&state.db), data).await {
         Ok(res) => HttpResponse::Created().json(res),
-        Err(_) => HttpResponse::ImATeapot().json(json!({"error": "A some error"})),
+        Err(err) => {
+            log::error!("{:?}", err);
+            HttpResponse::ImATeapot().json(json!({"error": "A some error"}))
+        },
     }
 }
 
@@ -34,14 +37,20 @@ pub async fn delete(state: web::Data<AppState>, path: web::Path<i64>) -> impl Re
 
     match Worker::delete(Arc::clone(&state.db), id).await {
         Ok(res) => HttpResponse::Created().json(res),
-        Err(_) => HttpResponse::ImATeapot().json(json!({"error": "A some error"})),
+        Err(err) => {
+            log::error!("{:?}", err);
+            HttpResponse::ImATeapot().json(json!({"error": "A some error"}))
+        },
     }
 }
 
 pub async fn all(state: web::Data<AppState>) -> impl Responder {
     match Worker::all(Arc::clone(&state.db)).await {
         Ok(res) => HttpResponse::Ok().json(res),
-        Err(_) => HttpResponse::ImATeapot().json(json!({"error": "A some error"})),
+        Err(err) => {
+            log::error!("{:?}", err);
+            HttpResponse::ImATeapot().json(json!({"error": "A some error"}))
+        },
     }
 }
 
@@ -51,6 +60,9 @@ pub async fn check(_state: web::Data<AppState>, data: web::Json<CheckWorker>) ->
             let summary = clinet.summary();
             HttpResponse::Ok().json(summary)
         },
-        Err(_) => HttpResponse::ImATeapot().json(json!({"error": "A some error"})),
+        Err(err) => {
+            log::error!("{:?}", err);
+            HttpResponse::ImATeapot().json(json!({"error": "A some error"}))
+        },
     }
 }

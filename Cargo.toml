@@ -8,7 +8,6 @@ edition = "2021"
 [dependencies]
 actix-web = "4.5.1"
 chrono = "0.4.35"
-diesel = { version = "2.1.4", features = ["sqlite", "uuid"] }
 dotenv = "0.15.0"
 env_logger = "0.11.3"
 envy = "0.4.2"
@@ -17,6 +16,5 @@ serde = { version = "1.0.197", features = ["derive"] }
 serde_with = { version = "3.6.1", features = ["chrono_0_4"] }
 serde_json = "1.0.114"
 uuid = { version = "1.7.0", features = ["serde"] }
-
 sqlx = { version = "0.7.3", features = ["runtime-tokio", "sqlite", "chrono", "uuid"] }
 actix-cors = "0.7.0"
