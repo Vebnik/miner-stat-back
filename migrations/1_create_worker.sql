@@ -2,7 +2,7 @@ create table "worker"
 (
     id              integer     primary key autoincrement,
 
-    name            text        not null uniq,
+    name            text        not null,
     port            text        not null,
     host            text        not null,
 

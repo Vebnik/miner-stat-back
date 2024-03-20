@@ -4,7 +4,7 @@ mod config;
 mod error;
 
 use actix_cors::Cors;
-use actix_web::{middleware::Logger, web, App, HttpServer, http};
+use actix_web::{middleware::Logger, web, App, HttpServer};
 use dotenv::dotenv;
 use std::sync::Arc;
 use sqlx::{sqlite::SqlitePool, Pool, Sqlite};
@@ -33,9 +33,8 @@ async fn main() -> Result<(), std::io::Error> {
 
     HttpServer::new(move || {
         let cors = Cors::default()
-            .allowed_origin("http://127.0.0.1:9000/")
-            .allowed_origin("http://localhost:9000/")
             .allow_any_origin()
+            .allow_any_method()
             .allow_any_header();
 
         App::new()

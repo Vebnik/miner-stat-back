@@ -52,3 +52,10 @@ pub struct Statistic {
     pub summary: Summary,
     pub worker: Worker,
 }
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub struct CheckWorker {
+    pub host: String,
+    pub port: String,
+}

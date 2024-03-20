@@ -1,19 +1,22 @@
 use serde_json::json;
 
 use crate::services::whatsminer::types::{Client, Command, Summary};
+use crate::error::Error;
 use std::{io::{Read, Write}, net::TcpStream};
 
 
 impl Client {
-    pub fn new(addr: String, port: String, name: String, is_write: bool) -> Self {
+    pub fn new(addr: String, port: String, name: String, is_write: bool) -> Result<Self, Error> {
         let url = format!("{}:{}", addr, port);
-        let stream = TcpStream::connect(&url).expect("Error in crate tcp connect");
+
+        let stream = TcpStream::connect(&url)
+            .map_err(|_| Error::TcpError)?;
 
         let mut client = Self {addr, port, stream, name};
 
         if is_write { client.get_token() };
 
-        client 
+        Ok(client)
     }
 
     // private
