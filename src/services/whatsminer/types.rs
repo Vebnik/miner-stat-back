@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use super::models::Worker;
 
+#[derive(Debug)]
 pub struct Client {
     pub name: String,
     pub addr: String,
@@ -58,4 +59,10 @@ pub struct Statistic {
 pub struct CheckWorker {
     pub host: String,
     pub port: String,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DeleteWorker {
+    pub id: i64,
 }
