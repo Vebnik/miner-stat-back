@@ -11,12 +11,13 @@ use std::sync::Arc;
 use sqlx::sqlite::SqlitePool;
 
 use config::{Config, AppState};
-use services::whatsminer::route::scoped_config as whatsminer_cfg;
+use router::init_api_service;
 use tasks::register_tasks;
 
+use error::Result;
 
 #[tokio::main]
-async fn main() -> Result<(), std::io::Error> {
+async fn main() -> Result<()> {
     dotenv().ok().expect("Error on parsing .env");
     env_logger::init();
 
@@ -41,10 +42,13 @@ async fn main() -> Result<(), std::io::Error> {
             .app_data(web::Data::new(app_state.clone()))
             .wrap(Logger::default())
             .wrap(cors)
-            .service(web::scope("/api").configure(whatsminer_cfg))
+            .service(init_api_service(web::scope("/api")))
     })
     .workers(4)
     .bind((cfg.host, cfg.port)).unwrap()
     .run()
     .await
+    .expect("Error in create HttpServer");
+
+    Ok(())
 }

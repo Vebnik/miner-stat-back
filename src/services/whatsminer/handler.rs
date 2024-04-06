@@ -1,68 +1,65 @@
 use std::sync::Arc;
-use actix_web::{HttpResponse, Responder, web};
+use actix_web::{HttpResponse, web};
 use serde_json::json;
 
+use crate::error::Result;
 use crate::AppState;
-use super::types::{Client, CreateWorker, Statistic, CheckWorker};
-use super::models::Worker;
+use super::types::{Client, CreateWorker, Statistic, CheckWorker, StatisticFilter};
+use super::models::{Worker, Statistic as TimeStatistic};
 
-pub async fn all_stat(state: web::Data<AppState>) -> impl Responder {
-    let workers = Worker::all(Arc::clone(&state.db)).await
-        .map_err(|_|  HttpResponse::ImATeapot().json(json!({"error": "A some error"})))
-        .expect("A some db error");
-    
-    let stats: Vec<Statistic> = workers
-        .iter()
-        .map(|el| {
-            let summary = Client::new(el.host.clone(), el.port.clone(), el.name.clone(), false).unwrap().summary();
-            Statistic { summary, worker: el.clone() }
-        })
-        .collect();
+pub async fn all_stat(state: web::Data<AppState>) -> Result<HttpResponse> {
+    let workers = Worker::all(Arc::clone(&state.db)).await?;
+    let mut stats: Vec<Statistic> = Vec::with_capacity(workers.len());
 
-    HttpResponse::Ok().json(stats)
-}
+    for worker in workers.iter() {
+        let summary = Client::new(worker.host.clone(), worker.port.clone(), worker.name.clone(), false)
+            .await?
+            .summary()
+            .await?;
 
-pub async fn create(state: web::Data<AppState>, data: web::Json<CreateWorker>) -> impl Responder {
-    match Worker::create(Arc::clone(&state.db), data).await {
-        Ok(res) => HttpResponse::Created().json(res),
-        Err(err) => {
-            log::error!("{:?}", err);
-            HttpResponse::ImATeapot().json(json!({"error": "A some error"}))
-        },
+        stats.push(Statistic { summary, worker: worker.clone()});
     }
+
+    Ok(HttpResponse::Ok().json(json!(stats)))
 }
 
-pub async fn delete(state: web::Data<AppState>, path: web::Path<i64>) -> impl Responder {
+pub async fn create(state: web::Data<AppState>, data: web::Json<CreateWorker>) -> Result<HttpResponse> {
+    let worker = Worker::create(Arc::clone(&state.db), data).await?;
+
+    Ok(HttpResponse::Ok().json(worker))
+}
+
+pub async fn delete(state: web::Data<AppState>, path: web::Path<i64>) -> Result<HttpResponse> {
     let id: i64 = path.into_inner();
 
-    match Worker::delete(Arc::clone(&state.db), id).await {
-        Ok(res) => HttpResponse::Created().json(res),
-        Err(err) => {
-            log::error!("{:?}", err);
-            HttpResponse::ImATeapot().json(json!({"error": "A some error"}))
-        },
-    }
+    let delete_worker = Worker::delete(Arc::clone(&state.db), id).await?;
+
+    Ok(HttpResponse::Ok().json(delete_worker))
 }
 
-pub async fn all(state: web::Data<AppState>) -> impl Responder {
-    match Worker::all(Arc::clone(&state.db)).await {
-        Ok(res) => HttpResponse::Ok().json(res),
-        Err(err) => {
-            log::error!("{:?}", err);
-            HttpResponse::ImATeapot().json(json!({"error": "A some error"}))
-        },
-    }
+pub async fn all(state: web::Data<AppState>) -> Result<HttpResponse> {
+    let workers = Worker::all(Arc::clone(&state.db)).await?;
+
+    Ok(HttpResponse::Ok().json(workers))
 }
 
-pub async fn check(_state: web::Data<AppState>, data: web::Json<CheckWorker>) -> impl Responder {
-    match Client::new(data.host.clone(), data.port.clone(), "Test".to_string(), false) {
-        Ok(mut clinet) => {
-            let summary = clinet.summary();
-            HttpResponse::Ok().json(summary)
-        },
-        Err(err) => {
-            log::error!("{:?}", err);
-            HttpResponse::ImATeapot().json(json!({"error": "A some error"}))
-        },
-    }
+pub async fn check(_state: web::Data<AppState>, data: web::Json<CheckWorker>) -> Result<HttpResponse> {
+    let mut client = Client::new(
+        data.host.clone(),
+        data.port.clone(),
+        "Test".to_string(),
+        false
+    ).await?;
+
+    let summary = client.summary().await?;
+
+    Ok(HttpResponse::Ok().json(summary))
+}
+
+pub async fn time_statistic(state: web::Data<AppState>, path: web::Path<i64>, filter_data: web::Query<StatisticFilter>) -> Result<HttpResponse> {
+    let worker_id: i64 = path.into_inner().into();
+
+    let statistic = TimeStatistic::by_worker(Arc::clone(&state.db), worker_id, filter_data).await?;
+
+    Ok(HttpResponse::Ok().json(statistic))
 }

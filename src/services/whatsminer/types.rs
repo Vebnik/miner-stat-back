@@ -66,3 +66,9 @@ pub struct CheckWorker {
 pub struct DeleteWorker {
     pub id: i64,
 }
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct StatisticFilter {
+    pub start_date: String,
+    pub end_date: String,
+}

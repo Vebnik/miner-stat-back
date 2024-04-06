@@ -15,7 +15,7 @@ pub struct Worker {
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Statistic {
-    pub id: i64,
+    pub id: Option<i64>,
     pub worker_id: i64,
     pub mhs_av: i64,
     pub temp: i64,
